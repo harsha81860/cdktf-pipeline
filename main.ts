@@ -20,7 +20,7 @@ class PipelineStack extends TerraformStack {
     const artifactBucketName = 'codepipeline-eu-west-2-919922704011';
 
     // CodeBuild IAM Role
-    // const pipelineRoleArn = 'arn:aws:iam::567404226201:role/service-role/gateway_automation';
+    const IamRoleArn = 'arn:aws:iam::567404226201:role/service-role/gateway_automation';
 
     // CodeBuild project
     const buildProject = new codebuild.CodebuildProject(this, 'BuildProject', {
