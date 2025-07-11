@@ -13,43 +13,22 @@ class PipelineStack extends TerraformStack {
     super(scope, id);
 
     new AwsProvider(this, 'AWS', {
-      region: 'us-east-1',
+      region: 'eu-west-2',
     });
 
     // Artifact bucket
-    const artifactBucket = new s3.S3Bucket(this, 'ArtifactBucket', {
-      bucketPrefix: 'cdktf-pipeline-artifacts-',
-    });
+    const artifactBucketName = 'codepipeline-eu-west-2-919922704011';
 
     // CodeBuild IAM Role
-    const cbRole = new iam.IamRole(this, 'CodeBuildRole', {
-      name: 'codebuild-service-role',
-      assumeRolePolicy: JSON.stringify({
-        Version: '2012-10-17',
-        Statement: [
-          {
-            Effect: 'Allow',
-            Principal: {
-              Service: 'codebuild.amazonaws.com',
-            },
-            Action: 'sts:AssumeRole',
-          },
-        ],
-      }),
-    });
-
-    new iam.IamRolePolicyAttachment(this, 'CBPolicyAttach', {
-      role: cbRole.name,
-      policyArn: 'arn:aws:iam::aws:policy/AWSCodeBuildDeveloperAccess',
-    });
+    const pipelineRoleArn = 'arn:aws:iam::567404226201:role/service-role/gateway_automation';
 
     // CodeBuild project
     const buildProject = new codebuild.CodebuildProject(this, 'BuildProject', {
       name: 'cdktf-build-project',
-      serviceRole: cbRole.arn,
+      serviceRole: 'arn:aws:iam::567404226201:role/service-role/gateway_automation',
       source: {
         type: 'GITHUB',
-        location: 'https://github.com/your-org/your-repo.git',
+        location: 'https://github.com/harsha81860/cdktf-pipeline',
         buildspec: 'buildspec.yml',
       },
       artifacts: {
@@ -63,33 +42,14 @@ class PipelineStack extends TerraformStack {
     });
 
     // Pipeline IAM Role
-    const pipelineRole = new iam.IamRole(this, 'PipelineRole', {
-      name: 'codepipeline-service-role',
-      assumeRolePolicy: JSON.stringify({
-        Version: '2012-10-17',
-        Statement: [
-          {
-            Effect: 'Allow',
-            Principal: {
-              Service: 'codepipeline.amazonaws.com',
-            },
-            Action: 'sts:AssumeRole',
-          },
-        ],
-      }),
-    });
-
-    new iam.IamRolePolicyAttachment(this, 'PipelinePolicyAttach', {
-      role: pipelineRole.name,
-      policyArn: 'arn:aws:iam::aws:policy/AWSCodePipelineFullAccess',
-    });
+const pipelineRoleArn = 'arn:aws:iam::567404226201:role/service-role/codebuild-stage_gateway_automation-service-role';
 
     // CodePipeline
     new codepipeline.Codepipeline(this, 'Pipeline', {
       name: 'cdktf-demo-pipeline',
-      roleArn: pipelineRole.arn,
+      roleArn: pipelineRoleArn,
       artifactStore: {
-        location: artifactBucket.bucket,
+        location: artifactBucketName,
         type: 'S3',
       },
       stage: [
@@ -104,8 +64,8 @@ class PipelineStack extends TerraformStack {
               version: '1',
               outputArtifacts: ['source_output'],
               configuration: {
-                Owner: 'your-org',
-                Repo: 'your-repo',
+                Owner: 'harsha81860',
+                Repo: 'cdktf-pipeline',
                 Branch: 'main',
                 OAuthToken: '${var.github_token}',
               },
