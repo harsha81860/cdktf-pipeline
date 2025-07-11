@@ -67,7 +67,7 @@ const pipelineRoleArn = 'arn:aws:iam::567404226201:role/service-role/codebuild-s
                 Owner: 'harsha81860',
                 Repo: 'cdktf-pipeline',
                 Branch: 'main',
-                OAuthToken: '${var.github_token}',
+                OAuthToken: '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',
               },
               runOrder: 1,
             },
