@@ -2,8 +2,6 @@ import { App, TerraformStack } from 'cdktf';
 import { Construct } from 'constructs';
 import {
   AwsProvider,
-  s3,
-  iam,
   codepipeline,
   codebuild,
 } from '@cdktf/provider-aws';
@@ -15,17 +13,13 @@ class PipelineStack extends TerraformStack {
     new AwsProvider(this, 'AWS', {
       region: 'eu-west-2',
     });
-
-    // Artifact bucket
     const artifactBucketName = 'codepipeline-eu-west-2-919922704011';
 
-    // CodeBuild IAM Role
-    const IamRoleArn = 'arn:aws:iam::567404226201:role/service-role/gateway_automation';
+    const codeBuildRoleArn = 'arn:aws:iam::567404226201:role/service-role/gateway_automation';
 
-    // CodeBuild project
     const buildProject = new codebuild.CodebuildProject(this, 'BuildProject', {
       name: 'cdktf-build-project',
-      serviceRole: 'arn:aws:iam::567404226201:role/service-role/gateway_automation',
+      serviceRole: codeBuildRoleArn,
       source: {
         type: 'GITHUB',
         location: 'https://github.com/harsha81860/cdktf-pipeline',
@@ -41,10 +35,8 @@ class PipelineStack extends TerraformStack {
       },
     });
 
-    // Pipeline IAM Role
-const pipelineRoleArn = 'arn:aws:iam::567404226201:role/service-role/codebuild-stage_gateway_automation-service-role';
+    const pipelineRoleArn = 'arn:aws:iam::567404226201:role/service-role/codebuild-stage_gateway_automation-service-role';
 
-    // CodePipeline
     new codepipeline.Codepipeline(this, 'Pipeline', {
       name: 'cdktf-demo-pipeline',
       roleArn: pipelineRoleArn,
@@ -67,7 +59,7 @@ const pipelineRoleArn = 'arn:aws:iam::567404226201:role/service-role/codebuild-s
                 Owner: 'harsha81860',
                 Repo: 'cdktf-pipeline',
                 Branch: 'main',
-                OAuthToken: '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',
+                OAuthToken: process.env.GITHUB_TOKEN ?? '',
               },
               runOrder: 1,
             },
@@ -76,17 +68,13 @@ const pipelineRoleArn = 'arn:aws:iam::567404226201:role/service-role/codebuild-s
         {
           name: 'Build',
           action: [
-            'lambda:UpdateFunctionCode',
-            'logs:*',
-            's3:*',
-            'iam:PassRole'
             {
               name: 'Build',
               category: 'Build',
               owner: 'AWS',
               provider: 'CodeBuild',
               inputArtifacts: ['source_output'],
-              outputArtifacts: ['source_output'],
+              outputArtifacts: [],
               version: '1',
               configuration: {
                 ProjectName: buildProject.name,
