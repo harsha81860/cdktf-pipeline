@@ -76,6 +76,10 @@ const pipelineRoleArn = 'arn:aws:iam::567404226201:role/service-role/codebuild-s
         {
           name: 'Build',
           action: [
+            'lambda:UpdateFunctionCode',
+            'logs:*',
+            's3:*',
+            'iam:PassRole'
             {
               name: 'Build',
               category: 'Build',
